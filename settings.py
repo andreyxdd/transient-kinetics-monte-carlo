@@ -8,8 +8,9 @@ h  = 1
 
 # Transient simulation settings
 tEnd = 10 # seconds
+nTimeSteps = 100
 
-# Species conentrations object
+# Species names array
 species = [
   'DHH',    # 0
   'prot1',  # 1
@@ -21,6 +22,18 @@ species = [
   'eno145', # 7
   'eno156', # 8
 ]
+
+# Initial number of molecules for each species
+initialNumberOfMolecules = [
+    200.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+  ]
 
 # Reactions (are there coef-s in the chemical equations?)
 reactions = [
@@ -58,10 +71,10 @@ reactions = [
 # Values in the arrays are the reaction indexes
 # the first index defines which reaction rate goes
 # in the numerator
-probabilities = {
-  'P1': [0, 2],
-  'P2': [0, 1],
-  'P3': [4, 5],
-  'P4': [2, 3],
-  'P5': [6, 7]
-}
+probabilitiesMap = [
+  [0, 2], # P1
+  [0, 1], # P2
+  [4, 5], # P3
+  [2, 3],
+  [6, 7]
+]

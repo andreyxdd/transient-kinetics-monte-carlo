@@ -1,6 +1,10 @@
 import numpy as np
 from scipy.optimize import fsolve
-from settings import kBoltzman, h, T, R, reactions
+from settings import (
+  kBoltzman, h, T, R,
+  initialNumberOfMolecules, reactions, probabilitiesMap,
+  tEnd, nTimeSteps )
+from runMonteCarlo import runMonteCarlo
 
 def computeRate(Ea, C, backward = False):
   sign = 1
@@ -39,22 +43,62 @@ def assembleSystem(x):
   return reactionRates
 
 if __name__ == "__main__":
-  initialNumberOfMolecules = [
-    200.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-  ]
+  # resulting matrix:
+  #  - each row represents a time step
+  #  - each column  represents a species (number of molecules)
+  dimensions = (nTimeSteps, len(initialNumberOfMolecules))
+  numberOfMoleculesWithTime = np.zeros(dimensions)
   
-  result = fsolve(assembleSystem, initialNumberOfMolecules)
-  reactiionRates = assembleSystem(result)
+  # fill the first row with initial data
+  numberOfMoleculesWithTime[0] = initialNumberOfMolecules
+  
+  # array of time steps:
+  # tArray = np.linspace(0, tEnd, nTimeSteps)
+  # HOW EXACTLY DOES THE TIME STEP AFFECTS THE SIMULATION?
+  
+  for i in range(1, nTimeSteps):
+    
+    # ---
+    # solving system of ODEs by using the species
+    # vector for the previous time step 'i - 1' 
+    currentNumberOfMolecules = fsolve(
+      assembleSystem,
+      numberOfMoleculesWithTime[i-1]
+    )
+    # ---
+    
+    # ---
+    # computing the reaction rates using the obtained
+    # solution vector
+    reacttionRates = assembleSystem(currentNumberOfMolecules)
+    # ---
+    
+    # ---
+    # computing reactions' probabilites by using
+    # scheme set in the settings file
+    probabilities = np.array([])
+    for pMap in probabilitiesMap:
 
-  # printing new vector of number of molecules  
-  print(result)
-  
-  # printing vector of reaction rates
-  print(reactiionRates)
+      reactionRatesSum = 1.0e-20
+      for idx in pMap:
+        reactionRatesSum += reacttionRates[idx]
+      
+      np.append(
+        probabilities,
+        reacttionRates[pMap[0]]/reactionRatesSum
+      )
+    # ---
+    
+    # ---
+    # Running Monte-Carlo simulation by passing the
+    # current vectors with species and probabilities
+    newNumberOfMolecules = runMonteCarlo(
+      currentNumberOfMolecules,
+      probabilities
+    )
+    # ---
+    
+    # ---
+    # adjusting the values for the current step 'i'
+    numberOfMoleculesWithTime[i] = newNumberOfMolecules
+    # ---
