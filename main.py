@@ -13,7 +13,7 @@ def computeRate(Ea, C, backward = False):
   
   return sign * ( (kBoltzman * T / h) * (np.exp(-Ea / (R * T))) ) * C;
 
-# x - vector species concentrations
+# x - vector with number of molecules (or species concentrations)
 def assembleSystem(x):
   reactionRates = np.zeros(len(x))
   for idx, reaction in enumerate(reactions):
@@ -25,8 +25,7 @@ def assembleSystem(x):
       for r in reaction['reactants']:
         reactionRate += computeRate(
           reaction['Ea_f'],
-          x[r],
-          True
+          x[r]
         )
     
     # if a reaction proceeds backwards:
@@ -35,7 +34,8 @@ def assembleSystem(x):
       for p in reaction['products']:
         reactionRate += computeRate(
           reaction['Ea_b'],
-          x[p]
+          x[p],
+          True
         )
     
     reactionRates[idx] = reactionRate
@@ -54,7 +54,8 @@ if __name__ == "__main__":
   
   # array of time steps:
   # tArray = np.linspace(0, tEnd, nTimeSteps)
-  # HOW EXACTLY DOES THE TIME STEP AFFECTS THE SIMULATION?
+  # TODO: HOW EXACTLY DOES THE TIME STEP AFFECTS THE SIMULATION?
+  # TODO: use another criteri to go out of the loop
   
   for i in range(1, nTimeSteps):
     
