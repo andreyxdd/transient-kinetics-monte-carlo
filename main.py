@@ -1,46 +1,13 @@
 import numpy as np
-from scipy.optimize import fsolve
+import matplotlib.pyplot as plt
 from settings import (
-  kBoltzman, h, T, R,
+  kB, h, T, R,
   initialNumberOfMolecules, reactions, probabilitiesMap,
-  tEnd, nTimeSteps )
+  tEnd, nTimeSteps, nSpecies )
 from runMonteCarlo import runMonteCarlo
 
-def computeRate(Ea, C, backward = False):
-  sign = 1
-  if backward:
-    sign = - sign
-  
-  return sign * ( (kBoltzman * T / h) * (np.exp(-Ea / (R * T))) ) * C;
-
-# x - vector with number of molecules (or species concentrations)
-def assembleSystem(x):
-  reactionRates = np.zeros(len(x))
-  for idx, reaction in enumerate(reactions):
-    reactionRate = 0.0;
-    
-    # if a reaction proceeds forward:
-    if 'Ea_f' in reaction:
-      # iterating over reactants:
-      for r in reaction['reactants']:
-        reactionRate += computeRate(
-          reaction['Ea_f'],
-          x[r]
-        )
-    
-    # if a reaction proceeds backwards:
-    elif 'Ea_b' in reaction:
-      # iterating over products:
-      for p in reaction['products']:
-        reactionRate += computeRate(
-          reaction['Ea_b'],
-          x[p],
-          True
-        )
-    
-    reactionRates[idx] = reactionRate
-
-  return reactionRates
+def computeRate(Ea, C):
+  return ( (kB * T / h) * (np.exp(-Ea / (R * T))) ) * C;
 
 if __name__ == "__main__":
   # resulting matrix:
@@ -53,43 +20,37 @@ if __name__ == "__main__":
   numberOfMoleculesWithTime[0] = initialNumberOfMolecules
   
   # array of time steps:
-  # tArray = np.linspace(0, tEnd, nTimeSteps)
-  # TODO: HOW EXACTLY DOES THE TIME STEP AFFECTS THE SIMULATION?
-  # TODO: use another criteri to go out of the loop
-  
+  cutIndex = 0 # last index designating the total number of iterations
   for i in range(1, nTimeSteps):
-    
-    # ---
-    # solving system of ODEs by using the species
-    # vector for the previous time step 'i - 1' 
-    currentNumberOfMolecules = fsolve(
-      assembleSystem,
-      numberOfMoleculesWithTime[i-1]
-    )
-    # ---
-    
-    # ---
-    # computing the reaction rates using the obtained
-    # solution vector
-    reacttionRates = assembleSystem(currentNumberOfMolecules)
-    # ---
-    
+
+    currentNumberOfMolecules = numberOfMoleculesWithTime[i-1]
+
+    reactionRates = np.zeros((len(reactions), 2))
+    for idx, r in enumerate(reactions):
+      for rt in r['reactants']:
+        reactionRates[idx, 0] += computeRate(
+          r['Ea_f'],
+          currentNumberOfMolecules[rt]
+        )
+      for pt in r['products']:
+        reactionRates[idx, 1] += computeRate(
+          r['Ea_b'],
+          currentNumberOfMolecules[pt]
+        )
+
     # ---
     # computing reactions' probabilites by using
     # scheme set in the settings file
-    probabilities = np.array([])
-    for pMap in probabilitiesMap:
+    probabilities = np.zeros(len(probabilitiesMap))
+    for idxP, pMap in enumerate(probabilitiesMap):
+      reactionRatesSum = 1.0e-25
+      for idxR in pMap:
+        # only pMap[0] is taken into account
+        reactionRatesSum += reactionRates[idxR, 0] + reactionRates[idxR, 1] 
 
-      reactionRatesSum = 1.0e-20
-      for idx in pMap:
-        reactionRatesSum += reacttionRates[idx]
-      
-      np.append(
-        probabilities,
-        reacttionRates[pMap[0]]/reactionRatesSum
-      )
+      probabilities[idxP] = reactionRates[pMap[0], 0]/reactionRatesSum
     # ---
-    
+
     # ---
     # Running Monte-Carlo simulation by passing the
     # current vectors with species and probabilities
@@ -98,8 +59,33 @@ if __name__ == "__main__":
       probabilities
     )
     # ---
-    
+
     # ---
     # adjusting the values for the current step 'i'
     numberOfMoleculesWithTime[i] = newNumberOfMolecules
     # ---
+
+    cutIndex = i
+    
+    # TODO: Think about condition to finish the loop
+
+  #--- Plotting and outputting the image
+  speciesLabel = ''
+  for j in range(nSpecies):
+    if j == 0:
+      speciesLabel = 'Fructose'
+    elif j == nSpecies-1:
+      speciesLabel = 'HMF'
+    else:
+      speciesLabel = 'int-'+str(j)
+
+    plt.plot(numberOfMoleculesWithTime[:cutIndex+1,j], label=speciesLabel)
+
+  plt.title(r'Species number of molecules', fontsize='16')
+  plt.ylabel(r'Number of molecules',fontsize='13')
+  plt.xlabel("# iterations",fontsize='13')
+  plt.legend()
+  plt.grid()
+  plt.savefig('species.png')
+  # plt.show()
+  # ---
