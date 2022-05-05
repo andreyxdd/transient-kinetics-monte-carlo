@@ -1,4 +1,4 @@
 [BASIC]
-good-names=i, df, e, ist, db
+good-names=i, df, e, ist, db, kB, h
 [MESSAGES CONTROL]
 disable=E0401,E0402,E1136

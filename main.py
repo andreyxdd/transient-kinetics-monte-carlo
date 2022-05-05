@@ -11,10 +11,10 @@ from settings import (
     initialNumberOfMolecules,
     reactions,
     probabilitiesMap,
-    nTimeSteps,
-    nSpecies,
+    N_TIME_STEPS,
+    N_SPECIES,
 )
-from runMonteCarlo import runMonteCarlo
+from run_monte_carlo import run_monte_carlo
 
 
 def compute_rate(activation_energy, concnetration):
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # resulting matrix:
     #  - each row represents a time step
     #  - each column  represents a species (number of molecules)
-    dimensions = (nTimeSteps, len(initialNumberOfMolecules))
+    dimensions = (N_TIME_STEPS, len(initialNumberOfMolecules))
     numberOfMoleculesWithTime = np.zeros(dimensions)
 
     # fill the first row with initial data
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     # array of time steps:
     CUT_INDEX = 0  # last index designating the total number of iterations
-    for i in range(1, nTimeSteps):
+    for i in range(1, N_TIME_STEPS):
 
         currentNumberOfMolecules = numberOfMoleculesWithTime[i - 1]
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         # ---
         # Running Monte-Carlo simulation by passing the
         # current vectors with species and probabilities
-        newNumberOfMolecules = runMonteCarlo(currentNumberOfMolecules, probabilities)
+        newNumberOfMolecules = run_monte_carlo(currentNumberOfMolecules, probabilities)
         # ---
 
         # ---
@@ -87,10 +87,10 @@ if __name__ == "__main__":
 
     # --- Plotting and outputting the image
     SPECIES_LABEL = ""
-    for j in range(nSpecies):
+    for j in range(N_SPECIES):
         if j == 0:
             SPECIES_LABEL = "Fructose"
-        elif j == nSpecies - 1:
+        elif j == N_SPECIES - 1:
             SPECIES_LABEL = "HMF"
         else:
             SPECIES_LABEL = "int-" + str(j)
