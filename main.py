@@ -78,6 +78,10 @@ if __name__ == "__main__":
         newNumberOfMolecules = run_monte_carlo(currentNumberOfMolecules, probabilities)
         # ---
 
+        for idx, n in enumerate(newNumberOfMolecules):
+            if n <= 0:
+                newNumberOfMolecules[idx] = 0.0
+
         # ---
         # adjusting the values for the current step 'i'
         numberOfMoleculesWithTime[i] = newNumberOfMolecules
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     plt.title(r"Species number of molecules vs reaction direction", fontsize="16")
     plt.ylabel(r"Number of molecules", fontsize="13")
     plt.xlabel("# iterations", fontsize="13")
-    plt.legend()
+    plt.legend(loc="upper right")
     plt.grid()
     plt.savefig("species.png")
     # plt.show()

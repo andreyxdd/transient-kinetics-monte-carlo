@@ -10,7 +10,7 @@ h = 6.62607004 * 1e-34  # m2kgs-1 Planck's constant
 T = 433  # K
 
 # Transient simulation settings
-N_TIME_STEPS = 100000
+N_TIME_STEPS = 30000
 
 # --- Arbitrary calculations ---
 

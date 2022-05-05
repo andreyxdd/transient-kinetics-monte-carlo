@@ -17,7 +17,7 @@ def run_monte_carlo(species_vector, probabilities, curr_probab_num=0):
     Returns:
         vector<number>: updated vector with all species number of molecules
     """
-    if curr_probab_num == N_PROBABILITIES - 1:
+    if curr_probab_num == N_PROBABILITIES:
         return species_vector
 
     if probabilities[curr_probab_num] >= np.random.random():
